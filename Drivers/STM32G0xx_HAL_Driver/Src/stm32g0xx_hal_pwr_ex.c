@@ -112,12 +112,7 @@
 
      *** PVM configuration ***
     =========================
-      (+) The PVM is used to monitor the VDDIO2 power supply by comparing it to 
-          1.2 V threshold (PVM_VDDIO2[2:0] in PWR CR2 register).
-      (+) PVMOVDDIO2 flag is available to indicate if VDDIO2 is higher or lower
-          than the 1.2 threshold. This event is internally connected to the EXTI
-          line 34 and can generate an interrupt if enabled.
-      (+) This feature is supported on STM32G0C1xx and STM32G0B1xx devices.
+    [..]
 
 @endverbatim
   * @{
@@ -189,7 +184,7 @@ void HAL_PWREx_DisablePORMonitorSampling(void)
   *         one in order to avoid having always PVDO output set.
   * @retval HAL_OK
   */
-HAL_StatusTypeDef HAL_PWREx_ConfigPVD(PWR_PVDTypeDef const *sConfigPVD)
+HAL_StatusTypeDef HAL_PWREx_ConfigPVD(PWR_PVDTypeDef *sConfigPVD)
 {
   /* Check the parameters */
   assert_param(IS_PWR_PVD_LEVEL(sConfigPVD->PVDLevel));
@@ -255,10 +250,6 @@ void HAL_PWREx_DisablePVD(void)
 /**
   * @brief Enable VDDUSB supply.
   * @note  Remove VDDUSB electrical and logical isolation, once VDDUSB supply is present.
-  * @note  For STM32G0C1xx and STM32G0B1xx devices, this function is deprecated and retained only to ensure backward compatibility.
-  *        Power Voltage Monitoring configuration is now handled by the HAL_PWREx_ConfigPVM() API.
-  *        The USV, IOSV, and PVMENUSB bits have been merged into the PVM_VDDIO2 bitfield of the PWR_CR2 register.
-  *        Please refer to RM0444 Rev6 or later, section "Power control register 2 (PWR_CR2)".
   * @retval None
   */
 void HAL_PWREx_EnableVddUSB(void)
@@ -268,10 +259,6 @@ void HAL_PWREx_EnableVddUSB(void)
 
 /**
   * @brief Disable VDDUSB supply.
-  * @note  For STM32G0C1xx and STM32G0B1xx devices, this function is deprecated and retained only to ensure backward compatibility.
-  *        Power Voltage Monitoring configuration is now handled by the HAL_PWREx_ConfigPVM() API.
-  *        The USV, IOSV, and PVMENUSB bits have been merged into the PVM_VDDIO2 bitfield of the PWR_CR2 register.
-  *        Please refer to RM0444 Rev 6 or later, section "Power control register 2 (PWR_CR2)".
   * @retval None
   */
 void HAL_PWREx_DisableVddUSB(void)
@@ -284,10 +271,6 @@ void HAL_PWREx_DisableVddUSB(void)
 /**
   * @brief Enable VDDIO2 supply.
   * @note  Remove VDDIO2 electrical and logical isolation, once VDDIO2 supply is present.
-  * @note  For STM32G0C1xx and STM32G0B1xx devices, this function is deprecated and retained only to ensure backward compatibility.
-  *        Power Voltage Monitoring configuration is now handled by the HAL_PWREx_ConfigPVM() API.
-  *        The USV, IOSV, and PVMENUSB bits have been merged into the PVM_VDDIO2 bitfield of the PWR_CR2 register.
-  *        Please refer to RM0444 Rev 6 or later, section "Power control register 2 (PWR_CR2)".
   * @retval None
   */
 void HAL_PWREx_EnableVddIO2(void)
@@ -298,10 +281,6 @@ void HAL_PWREx_EnableVddIO2(void)
 
 /**
   * @brief Disable VDDIO2 supply.
-  * @note  For STM32G0C1xx and STM32G0B1xx devices, this function is deprecated and retained only to ensure backward compatibility.
-  *        Power Voltage Monitoring configuration is now handled by the HAL_PWREx_ConfigPVM() API.
-  *        The USV, IOSV, and PVMENUSB bits have been merged into the PVM_VDDIO2 bitfield of the PWR_CR2 register.
-  *        Please refer to RM0444 Rev 6 or later, section "Power control register 2 (PWR_CR2)".
   * @retval None
   */
 void HAL_PWREx_DisableVddIO2(void)
@@ -313,10 +292,6 @@ void HAL_PWREx_DisableVddIO2(void)
 #if defined (PWR_PVM_SUPPORT)
 /**
   * @brief Enable the Power Voltage Monitoring for USB peripheral (power domain Vddio2)
-  * @note  For STM32G0C1xx and STM32G0B1xx devices, this function is deprecated and retained only to ensure backward compatibility.
-  *        Power Voltage Monitoring configuration is now handled by the HAL_PWREx_ConfigPVM() API.
-  *        The USV, IOSV, and PVMENUSB bits have been merged into the PVM_VDDIO2 bitfield of the PWR_CR2 register.
-  *        Please refer to RM0444 Rev 6 or later, section "Power control register 2 (PWR_CR2)".
   * @retval None
   */
 void HAL_PWREx_EnablePVMUSB(void)
@@ -326,10 +301,6 @@ void HAL_PWREx_EnablePVMUSB(void)
 
 /**
   * @brief Disable the Power Voltage Monitoring for USB peripheral (power domain Vddio2)
-  * @note  For STM32G0C1xx and STM32G0B1xx devices, this function is deprecated and retained only to ensure backward compatibility.
-  *        Power Voltage Monitoring configuration is now handled by the HAL_PWREx_ConfigPVM() API.
-  *        The USV, IOSV, and PVMENUSB bits have been merged into the PVM_VDDIO2 bitfield of the PWR_CR2 register.
-  *        Please refer to RM0444 Rev 6 or later, section "Power control register 2 (PWR_CR2)".
   * @retval None
   */
 void HAL_PWREx_DisablePVMUSB(void)
@@ -340,36 +311,31 @@ void HAL_PWREx_DisablePVMUSB(void)
 
 #if defined(PWR_PVM_SUPPORT)
 /**
-  * @brief Configure the Power Voltage Monitoring (PVM).
+  * @brief Configure the Peripheral Voltage Monitoring (PVM).
   * @param sConfigPVM: pointer to a PWR_PVMTypeDef structure that contains the
   *        PVM configuration information.
   * @note The API configures a single PVM according to the information contained
   *       in the input structure. To configure several PVMs, the API must be singly
   *       called for each PVM used.
-  * @note The API configures the voltage monitoring for the USB peripheral, 
-  *       which is on the VDDIO2 domain(refer to the device's datasheet).
   * @note Refer to the electrical characteristics of your device datasheet for
   *         more details about the voltage thresholds corresponding to each
   *         detection level and to each monitored supply.
   * @retval HAL status
   */
-HAL_StatusTypeDef HAL_PWREx_ConfigPVM(PWR_PVMTypeDef const *sConfigPVM)
+HAL_StatusTypeDef HAL_PWREx_ConfigPVM(PWR_PVMTypeDef *sConfigPVM)
 {
   HAL_StatusTypeDef status = HAL_OK;
 
   /* Check the parameters */
   assert_param(IS_PWR_PVM_TYPE(sConfigPVM->PVMType));
+  assert_param(IS_PWR_PVM_MODE(sConfigPVM->Mode));
 
   /* Configure EXTI 34 interrupts if so required:
      scan through PVMType to detect which PVMx is set and
      configure the corresponding EXTI line accordingly. */
   switch (sConfigPVM->PVMType)
   {
-    case PWR_PVM_ENABLE:
-      assert_param(IS_PWR_PVM_MODE(sConfigPVM->Mode));
-      /* Enable the Power Voltage Monitoring */
-      MODIFY_REG(PWR->CR2, PWR_CR2_PVM_VDDIO2, PWR_PVM_ENABLE);
-
+    case PWR_PVM_USB:
       /* Clear any previous config. Keep it clear if no event or IT mode is selected */
       __HAL_PWR_PVM_EXTI_DISABLE_EVENT();
       __HAL_PWR_PVM_EXTI_DISABLE_IT();
@@ -398,16 +364,6 @@ HAL_StatusTypeDef HAL_PWREx_ConfigPVM(PWR_PVMTypeDef const *sConfigPVM)
       {
         __HAL_PWR_PVM_EXTI_ENABLE_FALLING_EDGE();
       }
-      break;
-
-    case PWR_PVM_BYPASS:
-      /* Bypass the Power Voltage Monitoring */
-      MODIFY_REG(PWR->CR2, PWR_CR2_PVM_VDDIO2, PWR_PVM_BYPASS);
-      break;
-
-    case PWR_PVM_DISABLE:
-      /* Disable the Power Voltage Monitoring */
-      CLEAR_BIT(PWR->CR2, PWR_CR2_PVM_VDDIO2);
       break;
 
     default:

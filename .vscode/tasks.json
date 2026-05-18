@@ -1,0 +1,67 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Debug",
+            "type": "shell",
+            "command": "C:\\Users\\Administrator\\.vscode\\extensions\\stmicroelectronics.stm32cube-ide-core-1.3.0-win32-x64\\resources\\binaries\\win32\\x86_64\\cube.exe",
+            "args": [
+                "cmake",
+                "--build",
+                "--preset",
+                "Debug"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build Release",
+            "type": "shell",
+            "command": "C:\\Users\\Administrator\\.vscode\\extensions\\stmicroelectronics.stm32cube-ide-core-1.3.0-win32-x64\\resources\\binaries\\win32\\x86_64\\cube.exe",
+            "args": [
+                "cmake",
+                "--build",
+                "--preset",
+                "Release"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Flash Debug",
+            "type": "shell",
+            "command": "C:\\Users\\Administrator\\.vscode\\extensions\\stmicroelectronics.stm32cube-ide-core-1.3.0-win32-x64\\resources\\binaries\\win32\\x86_64\\cube.exe",
+            "args": [
+                "programmer",
+                "-c",
+                "port=SWD",
+                "-e",
+                "all",
+                "-d",
+                "${workspaceFolder}/build/Debug/UV_Detector.elf",
+                "-rst"
+            ],
+            "dependsOn": "Build Debug",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Flash Release",
+            "type": "shell",
+            "command": "C:\\Users\\Administrator\\.vscode\\extensions\\stmicroelectronics.stm32cube-ide-core-1.3.0-win32-x64\\resources\\binaries\\win32\\x86_64\\cube.exe",
+            "args": [
+                "programmer",
+                "-c",
+                "port=SWD",
+                "-e",
+                "all",
+                "-d",
+                "${workspaceFolder}/build/Release/UV_Detector.elf",
+                "-rst"
+            ],
+            "dependsOn": "Build Release",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

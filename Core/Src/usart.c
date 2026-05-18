@@ -66,7 +66,7 @@ void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
+  
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -136,6 +136,21 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+int __io_putchar(int ch)
+{
+  uint8_t data = (uint8_t)ch;
+
+  HAL_UART_Transmit(&huart1, &data, 1, HAL_MAX_DELAY);
+  return ch;
+}
+
+int __io_getchar(void)
+{
+  uint8_t data = 0;
+
+  HAL_UART_Receive(&huart1, &data, 1, HAL_MAX_DELAY);
+  return data;
+}
 
 /* USER CODE END 1 */
 

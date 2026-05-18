@@ -47,8 +47,9 @@ extern "C" {
   */
 typedef struct
 {
-  uint32_t PVMType;   /*!< PVMType: Specifies the VDDIO2 Power Voltage Monitoring type.
-                           This parameter can be a value of @ref PWREx_PVM_Type. */
+  uint32_t PVMType;   /*!< PVMType: Specifies which voltage is monitored and against which threshold.
+                           This parameter can be a value of @ref PWREx_PVM_Type.
+                           @arg @ref PWR_PVM_USB Peripheral Voltage Monitoring USB enable */
 
   uint32_t Mode;      /*!< Mode: Specifies the operating mode for the selected pins.
                            This parameter can be a value of @ref PWREx_PVM_Mode. */
@@ -140,13 +141,10 @@ typedef struct
 #endif /* PWR_PVD_SUPPORT */
 
 #if defined(PWR_PVM_SUPPORT)
-/** @defgroup PWREx_PVM_Type VDDIO2 Power Voltage Monitoring type
+/** @defgroup PWREx_PVM_Type Peripheral Voltage Monitoring type
   * @{
   */
-#define PWR_PVM_DISABLE         ((uint32_t)0x00000000)                                     /*!< VDDIO2 monitoring disabled, IOs in isolation mode */
-#define PWR_PVM_ENABLE          ((uint32_t)PWR_CR2_PVM_VDDIO2_0)                           /*!< VDDIO2 monitoring enabled, IOs enabled or in isolation mode, according to VDDIO2 level */
-#define PWR_PVM_BYPASS          ((uint32_t)(PWR_CR2_PVM_VDDIO2_1 | PWR_CR2_PVM_VDDIO2_2))  /*!< VDDIO2 monitoring bypassed, IOs enabled */
-
+#define PWR_PVM_USB                  PWR_CR2_PVMEN_USB  /*!< Peripheral Voltage Monitoring enable for USB peripheral: Enable to keep the USB peripheral voltage monitoring under control (power domain Vddio2) */
 /**
   * @}
   */
@@ -258,7 +256,7 @@ typedef struct
   * @{
   */
 #if defined(PWR_PVM_SUPPORT)
-#define PWR_FLAG_PVMOVDDIO2                      (0x00020000u | PWR_SR2_PVMO_VDDIO2)   /*!< VDDIO2 supply voltage monitoring output flag */
+#define PWR_FLAG_PVMOUSB                    (0x00020000u | PWR_SR2_PVMO_USB)   /*!< USB Peripheral Voltage Monitoring output */
 #endif /* PWR_PVM_SUPPORT */
 /**
   * @}
@@ -470,16 +468,6 @@ typedef struct
   * @retval None
   */
 #define __HAL_PWR_PVM_EXTI_CLEAR_FALLING_FLAG()   WRITE_REG(EXTI->FPR2, PWR_EXTI_LINE_PVM)
-
-/**
-  * @brief  Get Power Voltage Monitoring Type
-  * @retval Returned value can be one of the following values:
-  *         @arg @ref PWR_PVM_ENABLE
-  *         @arg @ref PWR_PVM_BYPASS
-  *         @arg @ref PWR_PVM_DISABLE
-  */
-#define __HAL_PWR_PVM_GET_PVM_TYPE()              READ_BIT(PWR->CR2, PWR_CR2_PVM_VDDIO2)
-
 #endif /* PWR_PVM_SUPPORT */
 /**
   * @}
@@ -548,16 +536,14 @@ typedef struct
 #endif /* PWR_PVD_SUPPORT */
 
 #if defined(PWR_PVM_SUPPORT)
-#define IS_PWR_PVM_TYPE(TYPE)  (((TYPE) == PWR_PVM_DISABLE) || \
-                                ((TYPE) == PWR_PVM_ENABLE)  || \
-                                ((TYPE) == PWR_PVM_BYPASS))
+#define IS_PWR_PVM_TYPE(TYPE) ((TYPE) == PWR_PVM_USB)
 
-#define IS_PWR_PVM_MODE(MODE)  (((MODE) == PWR_PVM_MODE_NORMAL)              || \
-                                ((MODE) == PWR_PVM_MODE_IT_RISING)           || \
-                                ((MODE) == PWR_PVM_MODE_IT_FALLING)          || \
-                                ((MODE) == PWR_PVM_MODE_IT_RISING_FALLING)   || \
-                                ((MODE) == PWR_PVM_MODE_EVENT_RISING)        || \
-                                ((MODE) == PWR_PVM_MODE_EVENT_FALLING)       || \
+#define IS_PWR_PVM_MODE(MODE)  (((MODE) == PWR_PVM_MODE_NORMAL)              ||\
+                                ((MODE) == PWR_PVM_MODE_IT_RISING)           ||\
+                                ((MODE) == PWR_PVM_MODE_IT_FALLING)          ||\
+                                ((MODE) == PWR_PVM_MODE_IT_RISING_FALLING)   ||\
+                                ((MODE) == PWR_PVM_MODE_EVENT_RISING)        ||\
+                                ((MODE) == PWR_PVM_MODE_EVENT_FALLING)       ||\
                                 ((MODE) == PWR_PVM_MODE_EVENT_RISING_FALLING))
 #endif /* PWR_PVM_SUPPORT */
 /**
@@ -598,13 +584,17 @@ uint32_t          HAL_PWREx_GetVoltageRange(void);
 HAL_StatusTypeDef HAL_PWREx_ControlVoltageScaling(uint32_t VoltageScaling);
 #if defined(PWR_PVD_SUPPORT)
 /* Power voltage detection configuration functions ****************************/
-HAL_StatusTypeDef HAL_PWREx_ConfigPVD(PWR_PVDTypeDef const *sConfigPVD);
+HAL_StatusTypeDef HAL_PWREx_ConfigPVD(PWR_PVDTypeDef *sConfigPVD);
 void              HAL_PWREx_EnablePVD(void);
 void              HAL_PWREx_DisablePVD(void);
 #endif /* PWR_PVD_SUPPORT */
 #if defined(PWR_PVM_SUPPORT)
-/* Power voltage monitoring configuration function ****************************/
-HAL_StatusTypeDef HAL_PWREx_ConfigPVM(PWR_PVMTypeDef const *sConfigPVM);
+/* Power voltage monitoring configuration functions ***************************/
+void HAL_PWREx_EnableVddIO2(void);
+void HAL_PWREx_DisableVddIO2(void);
+void HAL_PWREx_EnablePVMUSB(void);
+void HAL_PWREx_DisablePVMUSB(void);
+HAL_StatusTypeDef HAL_PWREx_ConfigPVM(PWR_PVMTypeDef *sConfigPVM);
 #endif /* PWR_PVM_SUPPORT */
 #if defined(PWR_CR2_USV)
 void HAL_PWREx_EnableVddUSB(void);
@@ -626,13 +616,6 @@ void              HAL_PWREx_PVD_IRQHandler(void);
 void              HAL_PWREx_PVD_Rising_Callback(void);
 void              HAL_PWREx_PVD_Falling_Callback(void);
 #endif /* PWR_PVD_SUPPORT && PWR_PVM_SUPPORT */
-#if defined(PWR_PVM_SUPPORT)
-/* Deprecated functions: retained only to ensure backward compatibility */
-void HAL_PWREx_EnableVddIO2(void);
-void HAL_PWREx_DisableVddIO2(void);
-void HAL_PWREx_EnablePVMUSB(void);
-void HAL_PWREx_DisablePVMUSB(void);
-#endif /* PWR_PVM_SUPPORT */
 
 /**
   * @}
