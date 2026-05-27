@@ -13,11 +13,15 @@
 #define LTR390_REG_UVS_DATA_0           0x10U
 #define LTR390_PART_ID_EXPECTED         0xB2U
 #define LTR390_MEAS_RATE_18BIT_100MS    0x22U
-#define LTR390_GAIN_3                   0x01U
+#define LTR390_GAIN_18                  0x04U
 #define LTR390_INT_CFG_UVS              0x34U
 #define LTR390_MAIN_CTRL_UVS_ACTIVE     0x0AU
 #define LTR390_STATUS_DATA_READY        0x08U
 #define LTR390_I2C_TIMEOUT_MS           50U
+#define LTR390_UVI_SCALE_NUMERATOR      2U
+#define LTR390_UVI_SCALE_DENOMINATOR    23U
+#define LTR390_UW_CM2_X100_NUMERATOR    175U
+#define LTR390_UW_CM2_X100_DENOMINATOR  4U
 
 static HAL_StatusTypeDef LTR390_Fail(LTR390 *sensor, LTR390_Error error)
 {
@@ -83,7 +87,7 @@ HAL_StatusTypeDef LTR390_Init(LTR390 *sensor, I2C_HandleTypeDef *i2c)
     return LTR390_Fail(sensor, LTR390_ERROR_WRITE_MEAS_RATE);
   }
 
-  if (LTR390_WriteReg(sensor, LTR390_REG_GAIN, LTR390_GAIN_3) != HAL_OK) {
+  if (LTR390_WriteReg(sensor, LTR390_REG_GAIN, LTR390_GAIN_18) != HAL_OK) {
     return LTR390_Fail(sensor, LTR390_ERROR_WRITE_GAIN);
   }
 
@@ -176,6 +180,45 @@ HAL_StatusTypeDef LTR390_SetThreshold(LTR390 *sensor, uint32_t low, uint32_t hig
 }
 
 /* 传感器在线状态，用于 LCD 显示或后续安全策略。 */
+uint32_t LTR390_RawUvToUviX100(uint32_t raw_uv)
+{
+  return (uint32_t)(((uint64_t)raw_uv * LTR390_UVI_SCALE_NUMERATOR +
+                     (LTR390_UVI_SCALE_DENOMINATOR / 2U)) /
+                    LTR390_UVI_SCALE_DENOMINATOR);
+}
+
+uint32_t LTR390_UviX100ToUwCm2X100(uint32_t uvi_x100)
+{
+  return (uint32_t)(((uint64_t)uvi_x100 * 5U + 1U) / 2U);
+}
+
+uint32_t LTR390_UviX100ToWM2X1000(uint32_t uvi_x100)
+{
+  return (uvi_x100 + 2U) / 4U;
+}
+
+uint32_t LTR390_UviX100ToMwCm2X1000000(uint32_t uvi_x100)
+{
+  return (uint32_t)((uint64_t)uvi_x100 * 25U);
+}
+
+uint32_t LTR390_RawUvToUwCm2X100(uint32_t raw_uv)
+{
+  return (uint32_t)(((uint64_t)raw_uv * LTR390_UW_CM2_X100_NUMERATOR +
+                     (LTR390_UW_CM2_X100_DENOMINATOR / 2U)) /
+                    LTR390_UW_CM2_X100_DENOMINATOR);
+}
+
+uint32_t LTR390_UwCm2X100ToWM2X1000(uint32_t uw_cm2_x100)
+{
+  return (uw_cm2_x100 + 5U) / 10U;
+}
+
+uint32_t LTR390_UwCm2X100ToMwCm2X1000000(uint32_t uw_cm2_x100)
+{
+  return (uint32_t)((uint64_t)uw_cm2_x100 * 10U);
+}
+
 uint8_t LTR390_IsPresent(const LTR390 *sensor)
 {
   return sensor->present;

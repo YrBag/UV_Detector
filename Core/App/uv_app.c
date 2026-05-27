@@ -395,8 +395,22 @@ static void UV_App_UpdateUvSample(uint32_t now_ms)
   app.sensor_ok = (LTR390_ReadRawUv(&app.uv_sensor, &app.raw_uv) == HAL_OK);
   if ((app.sensor_ok != 0U) &&
       ((now_ms - app.last_uv_log_ms) >= APP_UV_LOG_MS)) {
+    uint32_t uvi_x100 = LTR390_RawUvToUviX100(app.raw_uv);
+    uint32_t uw_cm2_x100 = LTR390_RawUvToUwCm2X100(app.raw_uv);
+    uint32_t w_m2_x1000 = LTR390_UwCm2X100ToWM2X1000(uw_cm2_x100);
+    uint32_t mw_cm2_x1000000 = LTR390_UwCm2X100ToMwCm2X1000000(uw_cm2_x100);
+
     app.last_uv_log_ms = now_ms;
-    printf("[UV] LTR390 raw UV: %lu\r\n", (unsigned long)app.raw_uv);
+    printf("[UV] raw:%lu, UVI:%lu.%02lu, %lu.%02lu uW/cm2, %lu.%06lu mW/cm2, %lu.%03lu W/m2\r\n",
+           (unsigned long)app.raw_uv,
+           (unsigned long)(uvi_x100 / 100U),
+           (unsigned long)(uvi_x100 % 100U),
+           (unsigned long)(uw_cm2_x100 / 100U),
+           (unsigned long)(uw_cm2_x100 % 100U),
+           (unsigned long)(mw_cm2_x1000000 / 1000000U),
+           (unsigned long)(mw_cm2_x1000000 % 1000000U),
+           (unsigned long)(w_m2_x1000 / 1000U),
+           (unsigned long)(w_m2_x1000 % 1000U));
   } else if (app.sensor_ok == 0U) {
     printf("[UV] LTR390 read failed: %s\r\n",
            LTR390_GetErrorString(app.uv_sensor.last_error));

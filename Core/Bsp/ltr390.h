@@ -30,6 +30,13 @@ typedef struct {
 HAL_StatusTypeDef LTR390_Init(LTR390 *sensor, I2C_HandleTypeDef *i2c);
 HAL_StatusTypeDef LTR390_ReadRawUv(LTR390 *sensor, uint32_t *raw_uv);
 HAL_StatusTypeDef LTR390_SetThreshold(LTR390 *sensor, uint32_t low, uint32_t high);
+uint32_t LTR390_RawUvToUviX100(uint32_t raw_uv);
+uint32_t LTR390_UviX100ToUwCm2X100(uint32_t uvi_x100);
+uint32_t LTR390_UviX100ToWM2X1000(uint32_t uvi_x100);
+uint32_t LTR390_UviX100ToMwCm2X1000000(uint32_t uvi_x100);
+uint32_t LTR390_RawUvToUwCm2X100(uint32_t raw_uv);
+uint32_t LTR390_UwCm2X100ToWM2X1000(uint32_t uw_cm2_x100);
+uint32_t LTR390_UwCm2X100ToMwCm2X1000000(uint32_t uw_cm2_x100);
 uint8_t LTR390_IsPresent(const LTR390 *sensor);
 const char *LTR390_GetErrorString(LTR390_Error error);
 
